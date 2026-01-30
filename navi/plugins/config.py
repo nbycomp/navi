@@ -407,8 +407,8 @@ def smtp(server, port, email, password):
         create_smtp_table = """CREATE TABLE IF NOT EXISTS smtp (
                                 server text,
                                 port text,
-                                email text, 
-                                password text 
+                                email text,
+                                password text
                                 );"""
         create_table(conn, create_smtp_table)
 
@@ -1020,17 +1020,22 @@ def update():
 @click.option('--severity', multiple=True, default=["critical", "high", "medium", "low", "info"],
               type=click.Choice(["critical", "high", "medium", "low", "info"]),
               help='Isolate your update to a particular finding severity')
-def full(threads, days, c, v, state, severity):
+@click.option('--severity-modification-type', multiple=True, default=["NONE", "RECASTED", "ACCEPTED"],
+              type=click.Choice(["NONE", "RECASTED", "ACCEPTED"]),
+              help="Modify severity types to include.")
+def full(threads, days, c, v, state, severity, severity_modification_type):
     if threads:
         threads_check(threads)
 
     exid = '0'
 
     if days is None:
-        vuln_export(30, exid, threads, c, v, list(state), list(severity))
+        vuln_export(30, exid, threads, c, v, list(state), list(severity),
+                    severity_modification_type=list(severity_modification_type))
         asset_export(90, exid, threads, c, v)
     else:
-        vuln_export(days, exid, threads, c, v, list(state), list(severity))
+        vuln_export(days, exid, threads, c, v, list(state), list(severity),
+                    severity_modification_type=list(severity_modification_type))
         asset_export(days, exid, threads, c, v)
 
 
@@ -1068,14 +1073,18 @@ def agents():
 @click.option('--severity', multiple=True, default=["critical", "high", "medium", "low", "info"],
               type=click.Choice(["critical", "high", "medium", "low", "info"]),
               help='Isolate your update to a particular finding state')
-def vulns(threads, days, exid, c, v, state, severity):
+@click.option('--severity-modification-type', multiple=True, default=["NONE", "RECASTED", "ACCEPTED"],
+              type=click.Choice(["NONE", "RECASTED", "ACCEPTED"]),
+              help="Modify severity types to include.")
+def vulns(threads, days, exid, c, v, state, severity, severity_modification_type):
     if threads:
         threads_check(threads)
 
     if exid == ' ':
         exid = '0'
 
-    vuln_export(days, exid, threads, c, v, list(state), list(severity))
+    vuln_export(days, exid, threads, c, v, list(state), list(severity),
+                severity_modification_type=severity_modification_type)
 
 
 @update.command(help="Update the Compliance data")
